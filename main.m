@@ -15,6 +15,7 @@ clear
 close all
 clc
 
+
 % Run the simulation with the following initial condition
 run config.m;
 
@@ -22,10 +23,11 @@ run config.m;
 modelName = 'sim_env_falling_leaf';
 
 % Open the Simulink model
-open_system(modelName);
+open_system(modelName,'loadonly');
 
 % Run the Simulink model
 out = sim(modelName);
+close_system(modelName,0);
 
 % Plots
 figure(1)

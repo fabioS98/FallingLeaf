@@ -1,4 +1,7 @@
 clear all
+%% Add all subfolders to path
+folder = fileparts(which(mfilename)); 
+addpath(genpath(folder));
 
 %% Simulation parameter
 % Initial condition for the falling leaf motion
