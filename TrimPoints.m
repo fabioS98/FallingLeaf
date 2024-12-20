@@ -12,16 +12,23 @@ modelName = 'System_dynamics';
 % Open the Simulink model
 open_system(modelName,'loadonly');
 
-% Search for the trim points
-[xtrim,utrim,ytrim,dx, options] = trim('System_dynamics',x01,u01,[],IX1,IU1,[],[],IDX1);
-close_system(modelName,0); %close without saving
+%% Search for the trim points
+%[xtrim,utrim,ytrim,dx, options] = trim('System_dynamics',x01,u01,[],IX1,IU1,[],[],IDX1);
+%close_system(modelName,0); %close without saving
 
-% Print xtrim and utrim
-states = ["V","beta","alpha","p","q","r","phi","theta","psi"];
+
+%% Serach for the trim points via findop
+opspec = operspec(modelName);
+opspec.States.x = x04;
+opspec.Inputs.u = u04;
+opspec.States.Known = [1,1,1,1,1,1,0,0,0];
+op = findop(modelName, opspec);
+print_states_over_x(xstates,op.States.x);
+
+%% Print xtrim and utrim
 disp("xtrim:")
-print_states_over_x(states,xtrim);
+print_states_over_x(xstates,xtrim);
 
-ustates = ["u_stab","u_rud", "u_ail", "uthr"];
 disp("utrim:")
 print_states_over_x(ustates,utrim);
 
