@@ -16,11 +16,27 @@ x0  = [350;     %1-Velocity   (ft/s)
        0*deg;   %8-theta      (rad)
        0*deg];  %9-psi        (rad)
 
+xstates = ["V","beta","alpha","p","q","r","phi","theta","psi"];
+xstates6 = ["beta","alpha","p","q","r","phi"];
+ustates = ["u_stab",... %stabilators - elevators (longitudinal control) (differential stabilitors are ignored)
+            "u_rud",... %rudder (directional control, yaw axis)
+            "u_ail",... %ailerons (roll axis control)
+            "uthr"];    %throttle
+%% Controllers
+activeController = 1;
+% must be either 
+% - 1 - "NoController"
+% - 2 - "Baseline"
+
 %% Parameters for trim points
 % Trimpoint: Plant 01: Identical values to Chakraborty2010.
 IU1 = [2,3];            %   idx 2 and 3 kept constant
 IX1 = [1;2;4;5;6;7;9];  % fixed index for the states --> kept constant to x0
 IDX1 = [1:8];           % derivateves of x to be fulfilled
 u01 = [-2.606*deg; 0; 0; 14500];
-x01 = [350; 0; deg2rad(15.29); 0; 0; 0; 0; deg2rad(26.10); 0];
+x01 = [350; 0; 15.29*deg; 0; 0; 0; 0; 26.10*deg; 0];
+
+% Trimpont: Plant 04
+u04 = [-4.449*deg; -1.352*deg; -0.4383*deg; 14500];
+x04 = [350; 0; 20.17*deg; -1.083*deg; 1.855*deg; 2.634*deg; 35*deg; deg2rad(18.69); 0];
 

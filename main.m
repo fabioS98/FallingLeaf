@@ -19,6 +19,12 @@ clc
 % Run the simulation with the following initial condition
 run config.m;
 
+% Specify the controller
+% must be either 
+% - 1 - "NoController"
+% - 2 - "Baseline"
+activeController = 1;
+
 % Specify the model name
 modelName = 'sim_env_falling_leaf';
 
@@ -26,7 +32,7 @@ modelName = 'sim_env_falling_leaf';
 open_system(modelName,'loadonly');
 
 % Run the Simulink model
-out = sim(modelName);
+out = sim(modelName,'StopTime','20');
 close_system(modelName,0);
 
 % Plots

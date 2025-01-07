@@ -12,26 +12,35 @@ modelName = 'System_dynamics';
 % Open the Simulink model
 open_system(modelName,'loadonly');
 
-% Search for the trim points
-[xtrim,utrim,ytrim,dx, options] = trim('System_dynamics',x01,u01,[],IX1,IU1,[],[],IDX1);
-close_system(modelName,0); %close without saving
+%% Search for the trim points
+%[xtrim,utrim,ytrim,dx, options] = trim('System_dynamics',x01,u01,[],IX1,IU1,[],[],IDX1);
+%close_system(modelName,0); %close without saving
 
-% Print xtrim and utrim
-states = ["V","beta","alpha","p","q","r","phi","theta","psi"];
+
+%% Serach for the trim points via findop
+opspec = operspec(modelName);
+opspec.States.x = x0;
+opspec.Inputs.u = zeros(4,1); opspec.Inputs.u(4) = 14500;
+opspec.States.Known = [1,1,0,0,0,0,0,0,1];
+opspec.Inputs.Known = [0,0,0,1];
+op = findop(modelName, opspec);
+print_states_over_x(xstates,op.States.x);
+
+%% Print xtrim and utrim
 disp("xtrim:")
-print_states_over_x(states,xtrim);
+print_states_over_x(xstates,op.States.x);
 
-ustates = ["u_stab","u_rud", "u_ail", "uthr"];
 disp("utrim:")
-print_states_over_x(ustates,utrim);
+print_states_over_x(ustates,op.Inputs.u);
 
 %% Check the trim point if f(xtrim) = 0
+xtrim = op.States.x; utrim = op.Inputs.u;
 q = compute_dyn_pressure(xtrim);
 Coef = compute_coef(utrim,xtrim);
 [Forces, Moments] = compute_forces_moments(Coef,q);
 xdot = f(utrim,Forces,Moments,xtrim);
 disp("xdot for f(xtrim):")
-print_states_over_x(states,xdot);
+print_states_over_x(xstates,xdot);
 
 
 %% Function definitions

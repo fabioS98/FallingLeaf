@@ -1,0 +1,10 @@
+function x = mapStatesToVariables(states)
+    x.V= states(1);
+    x.beta = states(2);
+    x.alpha = states(3);
+    x.p = states(4);
+    x.q = states(5);
+    x.r = states(6);
+    x.phi = states(7);
+    x.theta = states(8);
+    x.psi = states(9);
