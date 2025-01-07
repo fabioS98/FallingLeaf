@@ -19,26 +19,28 @@ open_system(modelName,'loadonly');
 
 %% Serach for the trim points via findop
 opspec = operspec(modelName);
-opspec.States.x = x04;
-opspec.Inputs.u = u04;
-opspec.States.Known = [1,1,1,1,1,1,0,0,0];
+opspec.States.x = x0;
+opspec.Inputs.u = zeros(4,1); opspec.Inputs.u(4) = 14500;
+opspec.States.Known = [1,1,0,0,0,0,0,0,1];
+opspec.Inputs.Known = [0,0,0,1];
 op = findop(modelName, opspec);
 print_states_over_x(xstates,op.States.x);
 
 %% Print xtrim and utrim
 disp("xtrim:")
-print_states_over_x(xstates,xtrim);
+print_states_over_x(xstates,op.States.x);
 
 disp("utrim:")
-print_states_over_x(ustates,utrim);
+print_states_over_x(ustates,op.Inputs.u);
 
 %% Check the trim point if f(xtrim) = 0
+xtrim = op.States.x; utrim = op.Inputs.u;
 q = compute_dyn_pressure(xtrim);
 Coef = compute_coef(utrim,xtrim);
 [Forces, Moments] = compute_forces_moments(Coef,q);
 xdot = f(utrim,Forces,Moments,xtrim);
 disp("xdot for f(xtrim):")
-print_states_over_x(states,xdot);
+print_states_over_x(xstates,xdot);
 
 
 %% Function definitions

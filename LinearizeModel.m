@@ -34,5 +34,5 @@ figure
 hold on
 plot(pole(linsys),'ob');
 plot(pole(linsys6),'+r');
-
+legend('9dim','6dim')
 

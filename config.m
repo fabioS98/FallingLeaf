@@ -17,7 +17,16 @@ x0  = [350;     %1-Velocity   (ft/s)
        0*deg];  %9-psi        (rad)
 
 xstates = ["V","beta","alpha","p","q","r","phi","theta","psi"];
-ustates = ["u_stab","u_rud", "u_ail", "uthr"];
+xstates6 = ["beta","alpha","p","q","r","phi"];
+ustates = ["u_stab",... %stabilators - elevators (longitudinal control) (differential stabilitors are ignored)
+            "u_rud",... %rudder (directional control, yaw axis)
+            "u_ail",... %ailerons (roll axis control)
+            "uthr"];    %throttle
+%% Controllers
+activeController = 1;
+% must be either 
+% - 1 - "NoController"
+% - 2 - "Baseline"
 
 %% Parameters for trim points
 % Trimpoint: Plant 01: Identical values to Chakraborty2010.
