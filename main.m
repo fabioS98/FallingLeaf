@@ -32,31 +32,9 @@ activeController = 2;
 %must bei either
 % - modelNonlinear
 % - modelLinear
-modelName = modelLinear;
+modelName = modelNonlinear;
 
-% Open the Simulink model
-open_system(modelName,'loadonly');
+out = run_simulation(activeController,x0,modelName,20);
 
-% Run the Simulink model
-out = sim(modelName,'StopTime','20');
-close_system(modelName,0);
-
-% Plots
-figure
-hold on
-subplot(2,1,1)
-plot(squeeze(out.state.data(2,1,:))/deg, squeeze(out.state.data(3,1,:))/deg, 'DisplayName','Trajectory');
-grid on;
-xlabel('sideslip angle [deg]');
-ylabel('angle of attack [deg]');
-legend show
-
-subplot(2,1,2)
-plot(out.tout, squeeze(out.state.data(4,1,:))/deg, 'r-', 'DisplayName','Roll Rate');
-hold on
-plot(out.tout, squeeze(out.state.data(6,1,:))/deg, 'b--', 'DisplayName', 'Yaw Rate');
-grid on;
-xlabel('Time [sec]');
-ylabel('Rate [deg/sec]');
-legend show
+plot_sim_output(out);
 
