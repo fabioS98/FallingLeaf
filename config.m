@@ -4,6 +4,9 @@ folder = fileparts(which(mfilename));
 addpath(genpath(folder));
 
 %% Simulation parameter
+modelNonlinear = 'sim_env_falling_leaf';
+modelLinear = 'sim_env_falling_leaf_linear';
+
 % Initial condition for the falling leaf motion
 deg = pi/180;
 x0  = [350;     %1-Velocity   (ft/s)
@@ -22,6 +25,14 @@ ustates = ["u_stab",... %stabilators - elevators (longitudinal control) (differe
             "u_rud",... %rudder (directional control, yaw axis)
             "u_ail",... %ailerons (roll axis control)
             "uthr"];    %throttle
+
+%% Properties for the linear simulation "sim_env_falling_leaf_linear.slx"
+load LM4.mat; %loads the linear model
+A = linsys.A;
+B = linsys.B;
+C = linsys.C;
+D = linsys.D;
+
 %% Controllers
 activeController = 1;
 % must be either 

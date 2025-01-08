@@ -15,8 +15,7 @@ clear
 close all
 clc
 
-
-% Run the simulation with the following initial condition
+% Load all configurational parameters
 run config.m;
 
 % Specify the controller
@@ -26,11 +25,14 @@ run config.m;
 activeController = 2;
 
 % Specify the initial condition of the spacecraft
-% if nothing is selected, x0 is from the config.m
+% if nothing is selected, defaultx0 is used from the config.m
 % x0  = x04;
 
 % Specify the model name
-modelName = 'sim_env_falling_leaf';
+%must bei either
+% - modelNonlinear
+% - modelLinear
+modelName = modelLinear;
 
 % Open the Simulink model
 open_system(modelName,'loadonly');
@@ -40,14 +42,16 @@ out = sim(modelName,'StopTime','20');
 close_system(modelName,0);
 
 % Plots
-figure(1)
+figure
+hold on
+subplot(2,1,1)
 plot(squeeze(out.state.data(2,1,:))/deg, squeeze(out.state.data(3,1,:))/deg, 'DisplayName','Trajectory');
 grid on;
 xlabel('sideslip angle [deg]');
-ylabel('angle of attach [deg]');
+ylabel('angle of attack [deg]');
 legend show
 
-figure(2)
+subplot(2,1,2)
 plot(out.tout, squeeze(out.state.data(4,1,:))/deg, 'r-', 'DisplayName','Roll Rate');
 hold on
 plot(out.tout, squeeze(out.state.data(6,1,:))/deg, 'b--', 'DisplayName', 'Yaw Rate');
