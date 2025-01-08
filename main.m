@@ -23,7 +23,11 @@ run config.m;
 % must be either 
 % - 1 - "NoController"
 % - 2 - "Baseline"
-activeController = 1;
+activeController = 2;
+
+% Specify the initial condition of the spacecraft
+% if nothing is selected, x0 is from the config.m
+% x0  = x04;
 
 % Specify the model name
 modelName = 'sim_env_falling_leaf';
