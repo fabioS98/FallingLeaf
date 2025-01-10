@@ -22,7 +22,15 @@ run config.m;
 % must be either 
 % - 1 - "NoController"
 % - 2 - "Baseline"
-activeController = 2;
+% - 3 - "LinearController"
+activeController = 3;
+
+% Controller properties
+% must bei either
+% K = K; --> use 9 dim controller
+% K = K6; --> use 6 dim controlelr
+load('TP1.mat'); %loads the parameter K - gain from Trim Point X
+K = K;
 
 % Specify the initial condition of the spacecraft
 % if nothing is selected, defaultx0 is used from the config.m
@@ -34,7 +42,13 @@ activeController = 2;
 % - modelLinear
 modelName = modelNonlinear;
 
-out = run_simulation(activeController,x0,modelName,20);
+% Plant type
+% must be either 
+% - 1 - "9-dim state model"
+% - 2 - "6-dim state model, reduced by V, theta, psi"
+plant_mdl = 1;
+
+out = run_simulation(activeController,K,x0,modelName,plant_mdl,50);
 
 plot_sim_output(out);
 

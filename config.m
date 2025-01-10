@@ -7,6 +7,7 @@ addpath(genpath(folder));
 modelNonlinear = 'sim_env_falling_leaf';
 modelLinear = 'sim_env_falling_leaf_linear';
 
+%% Initial condition
 % Initial condition for the falling leaf motion
 deg = pi/180;
 x0  = [350;     %1-Velocity   (ft/s)
@@ -26,28 +27,42 @@ ustates = ["u_stab",... %stabilators - elevators (longitudinal control) (differe
             "u_ail",... %ailerons (roll axis control)
             "uthr"];    %throttle
 
+%% Controllers
+% Controller type
+% must be either 
+% - 1 - "NoController"
+% - 2 - "Baseline"
+% - 3 - "LinearController"
+activeController = 3;
+
+
+% Controller properties
+% must bei either
+% K = K; --> use 9 dim controller
+% K = K6; --> use 6 dim controlelr
+load('TP1.mat'); %loads the parameter K - gain
+K = K6;
+
+% Controller limits
+u_lim_min = [-deg2rad(24); -deg2rad(25); -deg2rad(30); 14500];
+u_lim_max = [deg2rad(10.5); deg2rad(45); deg2rad(30); 14500];
+
+%% Plant configuration parameters
+% Plant type
+% must be either 
+% - 1 - "9-dim state model"
+% - 2 - "6-dim state model, reduced by V, theta, psi"
+plant_mdl = 1;
+
+% Limits, for the integrator (mainly for the angles: beta, alpha, phi,
+% theta, psi)
+windup_integral_upper_limit = [Inf, pi, pi, Inf, Inf, Inf, pi, pi, pi]';
+windup_integral_lower_limit = -windup_integral_upper_limit;
+
 %% Properties for the linear simulation "sim_env_falling_leaf_linear.slx"
-load LM4.mat; %loads the linear model
+load TP1.mat; %loads the linear model
 A = linsys.A;
 B = linsys.B;
 C = linsys.C;
 D = linsys.D;
-
-%% Controllers
-activeController = 1;
-% must be either 
-% - 1 - "NoController"
-% - 2 - "Baseline"
-
-%% Parameters for trim points
-% Trimpoint: Plant 01: Identical values to Chakraborty2010.
-IU1 = [2,3];            %   idx 2 and 3 kept constant
-IX1 = [1;2;4;5;6;7;9];  % fixed index for the states --> kept constant to x0
-IDX1 = [1:8];           % derivateves of x to be fulfilled
-u01 = [-2.606*deg; 0; 0; 14500];
-x01 = [350; 0; 15.29*deg; 0; 0; 0; 0; 26.10*deg; 0];
-
-% Trimpont: Plant 04
-u04 = [-4.449*deg; -1.352*deg; -0.4383*deg; 14500];
-x04 = [350; 0; 20.17*deg; -1.083*deg; 1.855*deg; 2.634*deg; 35*deg; deg2rad(18.69); 0];
 

@@ -29,8 +29,7 @@ Iaux = [Izz/k 0 Ixz/k;
 xdot = zeros(9,1);
 
 % Forces equations
-xdot(1) = (-1/m)*(D*cos(x(2)) - Y*sin(x(2))) + g*(cos(x(7))*cos(x(8))*sin(x(3))*cos(x(2)) + ...
-    sin(x(7))*cos(x(8))*sin(x(2))-sin(x(8))*cos(x(3))*cos(x(2))) + (T/m)*cos(x(3))*cos(x(2));
+xdot(1) = 0;
 
 xdot(2) = (Y*cos(x(2))+D*sin(x(2)))/(m*x(1))+x(4)*sin(x(3))-x(6)*cos(x(3))+...
           (g/x(1))*cos(x(2))*sin(x(7))*cos(x(8))+sin(x(2))*(g*cos(x(3))*sin(x(8))-...
@@ -47,9 +46,9 @@ xdot(4:6) = Iaux*([l;M;n]-[0 -x(6) x(5); x(6) 0 -x(4); -x(5) x(4) 0]*I*[x(4);x(5
 % Euler angles dynamics
 xdot(7) = [1; sin(x(7))*tan(x(8)); cos(x(7))*tan(x(8))]'*x(4:6);
 
-xdot(8) = [0; cos(x(7)); -sin(x(7))]'*x(4:6);
+xdot(8) = 0;
 
-xdot(9) = [0; sin(x(7))*sec(x(8)); cos(x(7))*sec(x(8))]'*x(4:6);
+xdot(9) = 0;
 
 
 end

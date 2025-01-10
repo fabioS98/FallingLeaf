@@ -19,31 +19,34 @@ open_system(modelName,'loadonly');
 u01 = [-2.606*deg; 0; 0; 14500];
 x01 = [350; 0; 15.29*deg; 0; 0; 0; 0; 26.10*deg; 0];
 
-% Trimpont: Plant 04 from Chakraborty 2011 --> Paper
+% Trimpoint: Plant 04 from Chakraborty 2011 --> Paper
 u04 = [-4.449*deg; -1.352*deg; -0.4383*deg; 14500];
 x04 = [350; 0; 20.17*deg; -1.083*deg; 1.855*deg; 2.634*deg; 35*deg; deg2rad(18.69); 0];
 
-% Trimpont: Plant 04 from Chakraborty 2010 --> Thesis
+% Trimpoint: Plant 04 from Chakraborty 2010 --> Thesis
 u041 = [-4.503*deg; -1.359*deg; -0.4399*deg; 14500];
 x041 = [350; 0; 20.29*deg; 1.845*deg; 1.845*deg; 2.635*deg; 35*deg; deg2rad(18.69); 0];
 
-u09 = u01;
+% Trimpoint: Self developed. As close as possible at x0.
+u09 = u04;
 x09 = x0;
 
 % Serach for the trim points via findop
 opspec = operspec(modelName);
-opspec.States.x = x09;
-opspec.Inputs.u = u09;
+opspec.States.x = x01;
+opspec.Inputs.u = u01;
 
-opspec.States.Known = [1,1,0,0,0,0,0,0,1];
+opts = findopOptions;
+opts.OptimizationOptions.MaxFunEvals = 10000;
+opts.OptimizationOptions.MaxIter = 10000;
+opspec.States.Known = [1,0,0,0,0,0,0,0,1];
 opspec.Inputs.Known = [0,0,0,1];
 
 
 %opspec.Inputs.Min = u_lim_min; opspec.Inputs.Max = u_lim_max;
 
-op = findop(modelName, opspec);
+op = findop(modelName, opspec,opts);
 print_states_over_x(xstates,op.States.x);
-
 
 disp("xtrim:")
 print_states_over_x(xstates,op.States.x);
