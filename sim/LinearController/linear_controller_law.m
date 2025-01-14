@@ -25,6 +25,8 @@ function u = linear_controller_law(ref,states, states_ref, K, u_last)
         e = sum(states - states_ref);
         z = [e; xdot];
         u = -K*z;
+    else
+        disp("No Control law selcted.")
     end
 
     % saturate the output

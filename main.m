@@ -25,18 +25,27 @@ run config.m;
 % - 3 - "LinearController"
 activeController = 3;
 
+
+
 % Controller properties
 % must bei either
-% K = K; --> use 9 dim controller
-% K = K6; --> use 6 dim controlelr
-load('TP1_new.mat'); %loads the parameter K - gain from Trim Point X
-K = K6;
+% controller = 9; --> use 9 dim controller
+% controller = 6; --> use 6 dim controlelr
+load('TP1.mat'); %loads the parameter K - gain from Trim Point X
+controller = 6;
+if controller == 6
+    x0  = op.States.x; %use the trim point (op) from 
+    e = sum(x0(2:7)-op.States.x(2:7)); %define the control error in 6dim
+    u0  = -K*[e;op.States.x(2:7)]; %compute the initial control input
+    u0(4) = 14500;
+elseif controller == 9
+    x0  = op.States.x; %use the trim point (op) from 
+    e = sum(x0-op.States.x); %define the control error in 6dim
+    u0  = -K*[e;op.States.x]; %compute the initial control input
+else
+    disp("No valid controller choice")
+end
 
-% Specify the initial condition of the spacecraft
-x0  = op.States.x; %use the trim point (op) from 
-e = sum(x0(2:7)-op.States.x(2:7)); %define the control error in 6dim
-u0  = -K*[e;op.States.x(2:7)]; %compute the initial control input
-u0(4) = 14500; 
 
 % Specify the model name
 %must bei either
@@ -48,7 +57,7 @@ modelName = modelNonlinear;
 % must be either 
 % - 1 - "9-dim state model"
 % - 2 - "6-dim state model, reduced by V, theta, psi"
-plant_mdl = 2;
+plant_mdl = 1;
 
 %% Run the Simulation
 out = run_simulation(activeController,K,x0,modelName,plant_mdl,40);

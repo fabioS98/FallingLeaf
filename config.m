@@ -45,7 +45,7 @@ activeController = 3;
 % must bei either
 % K = K; --> use 9 dim controller
 % K = K6; --> use 6 dim controlelr
-load('TP1_new.mat'); %loads the parameter K - gain
+load('TP1.mat'); %loads the parameter K - gain
 K = K;
 
 % Controller limits
