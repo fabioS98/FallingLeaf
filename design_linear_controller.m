@@ -89,18 +89,22 @@ clear A B C D A_red B_red C_red D_red
 
 %% Create a controller based on LQR
 % Define Q based on Bryson's rule
-Q = eye(9);
-Q(1,1) = 1/(350^2); %V
-Q(2,2) = 1/((deg2rad(30))^2); %beta 30°
-Q(3,3) = Q(2,2); %alpha
-Q(4,4) = 1/(deg2rad(20)^2); %p, max 10°/s
-Q(5,5) = Q(4,4); %q
-Q(6,6) = Q(4,4); %r
-Q(7,7) = 1/(deg2rad(30)^2); %phi, max 30°
-Q(8,8) = Q(7,7); %theta
-Q(9,9) = 1/(pi^2); %psi
+Q = eye(10);
+Q(1,1) = 1/(10^2);
+Q(2,2) = 1/(5^2); %V
+Q(3,3) = 1/((deg2rad(3))^2); %beta 30°
+Q(4,4) = Q(2,2); %alpha
+Q(5,5) = 1/(deg2rad(3)^2); %p, max 10°/s
+Q(6,6) = Q(4,4); %q
+Q(7,7) = Q(4,4); %r
+Q(8,8) = 1/(deg2rad(20)^2); %phi, max 30°
+Q(9,9) = Q(7,7); %theta
+Q(10,10) = 1/(pi^2); %psi
 
-Q6 = Q(2:7,2:7);
+
+%Q = eye(10);
+
+Q6 = Q(2:8,2:8);
 
 % Define R based on Bryson's rule
 %R = eye(4); R(4,4) = 0.01;
@@ -111,9 +115,18 @@ end
 
 R3 = R(1:3,1:3);
 
+
+% create linear, extended system dot z which is capable to follow a
+% reference
+A = [0, ones(1,size(linsys.A,2)); zeros(size(linsys.A,1),1), linsys.A];
+B = [zeros(1,4); linsys.B];
+
+A6 = [0, ones(1,size(linsys6.A,2)); zeros(size(linsys6.A,1),1), linsys6.A];
+B6 = [zeros(1,3); linsys6.B];
+
 % Solve the algebraic Ricatti equation
-[K6, S, P] = lqr(linsys6, Q6, R3); % 9 dim state model
-[K, S, P] = lqr(linsys, Q, R); % 9 dim state model
+[K6, S, P] = lqr(A6, B6, Q6, R3); % 9 dim state model
+[K, S, P] = lqr(A, B, Q, R); % 9 dim state model
 
 disp(K);
 

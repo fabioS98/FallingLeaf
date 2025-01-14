@@ -19,5 +19,5 @@ open_system(modelName,'loadonly');
 out = sim(modelName,'StopTime',int2str(simTime));
 
 % Close the system without saving
-close_system(modelName,0);
+%close_system(modelName,0);
 end

@@ -29,12 +29,14 @@ activeController = 3;
 % must bei either
 % K = K; --> use 9 dim controller
 % K = K6; --> use 6 dim controlelr
-load('TP1.mat'); %loads the parameter K - gain from Trim Point X
-K = K;
+load('TP1_new.mat'); %loads the parameter K - gain from Trim Point X
+K = K6;
 
 % Specify the initial condition of the spacecraft
-% if nothing is selected, defaultx0 is used from the config.m
-% x0  = x04;
+x0  = op.States.x; %use the trim point (op) from 
+e = sum(x0(2:7)-op.States.x(2:7)); %define the control error in 6dim
+u0  = -K*[e;op.States.x(2:7)]; %compute the initial control input
+u0(4) = 14500; 
 
 % Specify the model name
 %must bei either
@@ -46,9 +48,12 @@ modelName = modelNonlinear;
 % must be either 
 % - 1 - "9-dim state model"
 % - 2 - "6-dim state model, reduced by V, theta, psi"
-plant_mdl = 1;
+plant_mdl = 2;
 
-out = run_simulation(activeController,K,x0,modelName,plant_mdl,50);
+%% Run the Simulation
+out = run_simulation(activeController,K,x0,modelName,plant_mdl,40);
 
+
+%% Plot the results
 plot_sim_output(out);
 
