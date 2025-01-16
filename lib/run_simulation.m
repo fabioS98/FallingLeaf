@@ -1,23 +1,21 @@
-function out = run_simulation(activeController, K, x0, modelName, plant_mdl, simTime)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
- 
-if nargin < 6 % if no sim time is provided
-    simTime = 20; %default value for simTime
-end
+function out = run_simulation(activeController, TP, x0, modelName, plant_mdl, controller_law, simTime)
+    % This function loads the required variables for the simulation
+    % INPUT:
+    %   activeController: decision variable, which controller is enabled
+    %   TP: trim point data
+    %   x0: initial condition for the spacecraft
+    %   modelName: which model to load
+    %   plant_mdl: defines which plant model (6 dim or 9 dim)
+    %   controller_law: decides, if linear controller is enabled which
+    %   dimension
+    %   simTime: simulation time
+    % OUTPUT:
+    %   out: logged signals
+    
+    % Load Model
+    load_simulation(activeController, TP, x0, modelName, plant_mdl, controller_law);
+  
+    % Run the Simulink model
+    out = sim(modelName,'StopTime',int2str(simTime));
 
-% Put all required parameters to workspace
-assignin('base',"activeController",activeController);
-assignin('base',"K",K);
-assignin('base',"plant_mdl",plant_mdl);
-assignin('base',"x0",x0);
-
-% Open the Simulink model
-open_system(modelName,'loadonly');
-
-% Run the Simulink model
-out = sim(modelName,'StopTime',int2str(simTime));
-
-% Close the system without saving
-%close_system(modelName,0);
 end

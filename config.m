@@ -32,32 +32,12 @@ ustates = ["u_stab",... %stabilators - elevators (longitudinal control) (differe
             "u_ail",... %ailerons (roll axis control)
             "uthr"];    %throttle
 
-%% Controllers
-% Controller type
-% must be either 
-% - 1 - "NoController"
-% - 2 - "Baseline"
-% - 3 - "LinearController"
-activeController = 3;
-
-
-% Controller properties
-% must bei either
-% K = K; --> use 9 dim controller
-% K = K6; --> use 6 dim controlelr
-load('TP1.mat'); %loads the parameter K - gain
-K = K;
-
+%% Controller parameters
 % Controller limits
 u_lim_min = [-deg2rad(24); -deg2rad(25); -deg2rad(30); 14500];
 u_lim_max = [deg2rad(10.5); deg2rad(45); deg2rad(30); 14500];
 
-%% Plant configuration parameters
-% Plant type
-% must be either 
-% - 1 - "9-dim state model"
-% - 2 - "6-dim state model, reduced by V, theta, psi"
-plant_mdl = 1;
+%% Plant parameters
 
 % Limits, for the integrator (mainly for the angles: beta, alpha, phi,
 % theta, psi)

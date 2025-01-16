@@ -10,7 +10,6 @@
 % -------------------------------------------------------------------------
 
 % NOTE: To see the details on the model, look into the simulink Blocks
-
 clear
 close all
 clc
@@ -25,26 +24,19 @@ run config.m;
 % - 3 - "LinearController"
 activeController = 3;
 
-
-
-% Controller properties
+% Load the Trim Point data
 % must bei either
-% controller = 9; --> use 9 dim controller
-% controller = 6; --> use 6 dim controlelr
-load('TP1.mat'); %loads the parameter K - gain from Trim Point X
-controller = 6;
-if controller == 6
-    x0  = op.States.x; %use the trim point (op) from 
-    e = sum(x0(2:7)-op.States.x(2:7)); %define the control error in 6dim
-    u0  = -K*[e;op.States.x(2:7)]; %compute the initial control input
-    u0(4) = 14500;
-elseif controller == 9
-    x0  = op.States.x; %use the trim point (op) from 
-    e = sum(x0-op.States.x); %define the control error in 6dim
-    u0  = -K*[e;op.States.x]; %compute the initial control input
-else
-    disp("No valid controller choice")
-end
+%  - TP1.mat
+%  - TP9.mat
+load('TP9.mat'); %loads parameters for the corresponding Trim Point
+TP = TP9;
+x0  = TP.op.States.x; %specify the initial condition of the Spacecraft
+
+% Controller properties (only relevant if LinearController is selected)
+% must bei either
+% controller_law = 9; --> use 9 dim controller
+% controller_law = 6; --> use 6 dim controller
+controller_law = 9;
 
 
 % Specify the model name
@@ -53,16 +45,23 @@ end
 % - modelLinear
 modelName = modelNonlinear;
 
-% Plant type
+% Plant type (only relevant when using the nonlinear model)
 % must be either 
 % - 1 - "9-dim state model"
 % - 2 - "6-dim state model, reduced by V, theta, psi"
-plant_mdl = 1;
+plant_mdl = 2;
 
 %% Run the Simulation
-out = run_simulation(activeController,K,x0,modelName,plant_mdl,40);
+ out = run_simulation( activeController, ...
+                 TP, ...
+                 x0, ...
+                 modelName, ...
+                 plant_mdl, ...
+                 controller_law, ...
+                 40);
 
-
+% Close the system without saving
+%close_system(modelName,0);
 %% Plot the results
 plot_sim_output(out);
 
