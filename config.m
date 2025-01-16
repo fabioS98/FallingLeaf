@@ -4,6 +4,10 @@ folder = fileparts(which(mfilename));
 addpath(genpath(folder));
 
 %% Simulation parameter
+modelNonlinear = 'sim_env_falling_leaf';
+modelLinear = 'sim_env_falling_leaf_linear';
+
+%% Initial condition
 % Initial condition for the falling leaf motion
 deg = pi/180;
 x0  = [350;     %1-Velocity   (ft/s)
@@ -16,27 +20,34 @@ x0  = [350;     %1-Velocity   (ft/s)
        0*deg;   %8-theta      (rad)
        0*deg];  %9-psi        (rad)
 
+u0 = [0;     %stabilators - elevators (longitudinal control) (differential stabilitors are ignored)
+      0;     %rudder (directional control, yaw axis)
+      0;     %ailerons (roll axis control)
+      0];    %throttle]
+
 xstates = ["V","beta","alpha","p","q","r","phi","theta","psi"];
 xstates6 = ["beta","alpha","p","q","r","phi"];
 ustates = ["u_stab",... %stabilators - elevators (longitudinal control) (differential stabilitors are ignored)
             "u_rud",... %rudder (directional control, yaw axis)
             "u_ail",... %ailerons (roll axis control)
             "uthr"];    %throttle
-%% Controllers
-activeController = 1;
-% must be either 
-% - 1 - "NoController"
-% - 2 - "Baseline"
 
-%% Parameters for trim points
-% Trimpoint: Plant 01: Identical values to Chakraborty2010.
-IU1 = [2,3];            %   idx 2 and 3 kept constant
-IX1 = [1;2;4;5;6;7;9];  % fixed index for the states --> kept constant to x0
-IDX1 = [1:8];           % derivateves of x to be fulfilled
-u01 = [-2.606*deg; 0; 0; 14500];
-x01 = [350; 0; 15.29*deg; 0; 0; 0; 0; 26.10*deg; 0];
+%% Controller parameters
+% Controller limits
+u_lim_min = [-deg2rad(24); -deg2rad(25); -deg2rad(30); 14500];
+u_lim_max = [deg2rad(10.5); deg2rad(45); deg2rad(30); 14500];
 
-% Trimpont: Plant 04
-u04 = [-4.449*deg; -1.352*deg; -0.4383*deg; 14500];
-x04 = [350; 0; 20.17*deg; -1.083*deg; 1.855*deg; 2.634*deg; 35*deg; deg2rad(18.69); 0];
+%% Plant parameters
+
+% Limits, for the integrator (mainly for the angles: beta, alpha, phi,
+% theta, psi)
+windup_integral_upper_limit = [Inf, pi, pi, Inf, Inf, Inf, pi, pi, pi]';
+windup_integral_lower_limit = -windup_integral_upper_limit;
+
+%% Properties for the linear simulation "sim_env_falling_leaf_linear.slx"
+%load TP1.mat; %loads the linear model
+%A = linsys.A;
+%B = linsys.B;
+%C = linsys.C;
+%D = linsys.D;
 

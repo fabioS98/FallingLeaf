@@ -10,49 +10,58 @@
 % -------------------------------------------------------------------------
 
 % NOTE: To see the details on the model, look into the simulink Blocks
-
 clear
 close all
 clc
 
-
-% Run the simulation with the following initial condition
+% Load all configurational parameters
 run config.m;
 
 % Specify the controller
 % must be either 
 % - 1 - "NoController"
 % - 2 - "Baseline"
-activeController = 2;
+% - 3 - "LinearController"
+activeController = 3;
 
-% Specify the initial condition of the spacecraft
-% if nothing is selected, x0 is from the config.m
-% x0  = x04;
+% Load the Trim Point data
+% must bei either
+%  - TP1.mat
+%  - TP9.mat
+load('TP9.mat'); %loads parameters for the corresponding Trim Point
+TP = TP9;
+x0  = TP.op.States.x; %specify the initial condition of the Spacecraft
+
+% Controller properties (only relevant if LinearController is selected)
+% must bei either
+% controller_law = 9; --> use 9 dim controller
+% controller_law = 6; --> use 6 dim controller
+controller_law = 9;
+
 
 % Specify the model name
-modelName = 'sim_env_falling_leaf';
+%must bei either
+% - modelNonlinear
+% - modelLinear
+modelName = modelNonlinear;
 
-% Open the Simulink model
-open_system(modelName,'loadonly');
+% Plant type (only relevant when using the nonlinear model)
+% must be either 
+% - 1 - "9-dim state model"
+% - 2 - "6-dim state model, reduced by V, theta, psi"
+plant_mdl = 2;
 
-% Run the Simulink model
-out = sim(modelName,'StopTime','20');
-close_system(modelName,0);
+%% Run the Simulation
+ out = run_simulation( activeController, ...
+                 TP, ...
+                 x0, ...
+                 modelName, ...
+                 plant_mdl, ...
+                 controller_law, ...
+                 40);
 
-% Plots
-figure(1)
-plot(squeeze(out.state.data(2,1,:))/deg, squeeze(out.state.data(3,1,:))/deg, 'DisplayName','Trajectory');
-grid on;
-xlabel('sideslip angle [deg]');
-ylabel('angle of attach [deg]');
-legend show
-
-figure(2)
-plot(out.tout, squeeze(out.state.data(4,1,:))/deg, 'r-', 'DisplayName','Roll Rate');
-hold on
-plot(out.tout, squeeze(out.state.data(6,1,:))/deg, 'b--', 'DisplayName', 'Yaw Rate');
-grid on;
-xlabel('Time [sec]');
-ylabel('Rate [deg/sec]');
-legend show
+% Close the system without saving
+%close_system(modelName,0);
+%% Plot the results
+plot_sim_output(out);
 
