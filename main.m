@@ -30,13 +30,13 @@ activeController = 3;
 %  - TP9.mat
 load('TP9.mat'); %loads parameters for the corresponding Trim Point
 TP = TP9;
-x0  = TP.op.States.x; %specify the initial condition of the Spacecraft
+x0  = x0; %TP.op.States.x; %specify the initial condition of the Spacecraft
 
 % Controller properties (only relevant if LinearController is selected)
 % must bei either
 % controller_law = 9; --> use 9 dim controller
 % controller_law = 6; --> use 6 dim controller
-controller_law = 9;
+controller_law = 6;
 
 
 % Specify the model name
