@@ -36,7 +36,7 @@ assignin('base',"x0",x0);
 
 assignin('base',"TP",TP);
 
-if modelName == 'sim_env_falling_leaf_linear'
+if strcmp(modelName,'sim_env_falling_leaf_linear')
     assignin('base','A',TP.linsys6.A);
     assignin('base','B',TP.linsys6.B);
     assignin('base','C',TP.linsys6.C);
