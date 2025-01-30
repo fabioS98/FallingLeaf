@@ -30,3 +30,7 @@ codegen/
 # Octave session info
 octave-workspace
 *.DS_Store
+data/MC_sim_TP1_10000.mat
+data/MC_sim_TP1_noController_100.mat
+data/MC_sim_TP9_10000.mat
+data/MC_sim_TP9_noController_100.mat

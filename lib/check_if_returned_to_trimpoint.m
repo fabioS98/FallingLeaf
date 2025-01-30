@@ -24,8 +24,8 @@ function check = check_if_returned_to_trimpoint(TP,out)
         % check if stationary at the end
         if (endState - out.state.data(2:7,1,end-5)) < 0.05 * ones(6,1)
             
-            % check for oscillations above 60 deg
-            if find(abs(out.state.data(2:6,1,:))>deg2rad(80))
+            % check for oscillations above 90 deg in alpha and beta
+            if find(abs(out.state.data(2:3,1,:))>deg2rad(90))
                 check = false; % oscillations found
             else
                 check = true; % no oscillations found

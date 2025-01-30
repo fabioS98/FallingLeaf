@@ -16,13 +16,13 @@ clc
 
 % Load all configurational parameters
 run config.m;
-
+ 
 % use the self-developed linear controller for the MC simulation
-activeController = 3;
+activeController = 1;
 
 % load the corresponding Trim Point for the MC simulation
-load('TP9.mat'); %loads parameters for the corresponding Trim Point
-TP = TP9;
+load('TP1.mat'); %loads parameters for the corresponding Trim Point
+TP = TP1;
 x0  = TP.op.States.x; %specify the initial condition of the Spacecraft
 
 % use the 6 dim controller for the MC simulation
@@ -35,7 +35,7 @@ modelName = modelNonlinear;
 plant_mdl = 2;
 
 %% Create MC simulation variables
-num_samples = 1000;
+num_samples = 100;
 fprintf("Required storage: %.2f mBytes\n", num_samples*0.028);
 
 MC_name = "MC_sim_" + char(datetime('now', 'Format', 'yyyy-MM-dd__HH-mm-ss'));
