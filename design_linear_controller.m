@@ -41,7 +41,7 @@ TP9.Known_x = [1,1,0,0,0,0,0,0,1];
 TP9.Known_u = [0,0,0,1];
 
 % Choose which trim point to search for
-TP = TP9; %choose which trim point
+TP = TP1; %choose which trim point
 
 %Defines the specifications for the trim point search
 opspec = operspec(modelName);
@@ -99,8 +99,8 @@ R = eye(4);
 R6 = R(1:3,1:3);
 
 % Solve the algebraic Ricatti equation
-[K6, ~, ~] = lqr(linsys6.A, linsys6.B, Q6, R6); % 6 dim state model
-[K, ~, ~] = lqr(linsys.A, linsys.B, Q, R); % 9 dim state model
+[K6, S6, ~] = lqr(linsys6.A, linsys6.B, Q6, R6); % 6 dim state model
+[K, S, ~] = lqr(linsys.A, linsys.B, Q, R); % 9 dim state model
 
 disp(K);
 
