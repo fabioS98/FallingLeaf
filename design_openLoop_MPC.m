@@ -82,22 +82,22 @@ f = casadi.Function('f',{u,x,x_trim_sym}, {f_sym});
 %0.1 deg for all angle deviations
 %0.05 deg/s for all rates
 
-R = eye(6);
-R(1,1) = 1/(deg2rad(0.1))^2; 
-R(2,2) = 1/(deg2rad(0.1))^2;
-R(3,3) = 1/(deg2rad(0.05))^2;
-R(4,4) = 1/(deg2rad(0.05))^2;
-R(5,5) = 1/(deg2rad(0.05))^2;
-R(6,6) = 1/(deg2rad(0.1))^2;
+Q = eye(6);
+Q(1,1) = 1/(deg2rad(0.1))^2; 
+Q(2,2) = 1/(deg2rad(0.1))^2;
+Q(3,3) = 1/(deg2rad(0.05))^2;
+Q(4,4) = 1/(deg2rad(0.05))^2;
+Q(5,5) = 1/(deg2rad(0.05))^2;
+Q(6,6) = 1/(deg2rad(0.1))^2;
 
 % only relevant for 9dim
 % R(7,7) = 1/(deg2rad(0.5))^2;
 % R(8,8) = 1/(deg2rad(0.5))^2;
 % R(9,9) = 1/(deg2rad(0.5))^2;
 
-Q = eye(3);
+R = eye(3);
 for i=1:1:3
-    Q(i,i) = 1/deg2rad(0.1)^2;
+    R(i,i) = 1/deg2rad(0.1)^2;
 end
 
 % Euler-Cauchy Integration Scheme
@@ -105,8 +105,8 @@ for i = 1 : N
     X_next = X(:,i) + dt*f(U(:,i),X(:,i), x_trim);
     opti.subject_to(X(:,i+1) == X_next);
 
-    Js(i,1) = (X(:,i)-xterminal_casadi)' * eye(6) * (X(:,i)-xterminal_casadi) ...
-               + (U(1:3,i))' * eye(3) *(U(1:3,i)); 
+    Js(i,1) = (X(:,i)-xterminal_casadi)' * Q * (X(:,i)-xterminal_casadi) ...
+               + (U(1:3,i))' * R *(U(1:3,i)); 
 end
 
 % combine the stage costs and the terminal costs, x_trim' * S * xtrim,
