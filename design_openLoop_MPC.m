@@ -89,6 +89,7 @@ Q(3,3) = 1/(deg2rad(0.05))^2;
 Q(4,4) = 1/(deg2rad(0.05))^2;
 Q(5,5) = 1/(deg2rad(0.05))^2;
 Q(6,6) = 1/(deg2rad(0.1))^2;
+Q = eye(6);
 
 % only relevant for 9dim
 % R(7,7) = 1/(deg2rad(0.5))^2;
@@ -97,21 +98,22 @@ Q(6,6) = 1/(deg2rad(0.1))^2;
 
 R = eye(3);
 for i=1:1:3
-    R(i,i) = 1/deg2rad(0.1)^2;
+    R(i,i) = 1/deg2rad(0.05)^2;
 end
+R = eye(3);
 
 % Euler-Cauchy Integration Scheme
 for i = 1 : N
     X_next = X(:,i) + dt*f(U(:,i),X(:,i), x_trim);
     opti.subject_to(X(:,i+1) == X_next);
 
-    Js(i,1) = (X(:,i)-xterminal_casadi)' * Q * (X(:,i)-xterminal_casadi) ...
-               + (U(1:3,i))' * R *(U(1:3,i)); 
+    Js(i,1) = (X(:,i)-xterminal_casadi)' * TP.S6 * (X(:,i)-xterminal_casadi) ...
+               + (U(1:3,i)-u_trim(1:3))' * R *(U(1:3,i)-u_trim(1:3)); 
 end
 
 % combine the stage costs and the terminal costs, x_trim' * S * xtrim,
 % which S from the ARE around the TP
-J = sum(Js,1) + x_trim(2:7)'*TP.S6*x_trim(2:7);
+J = sum(Js,1) + (X(:,end)-x_trim(2:7))'*TP.S6*(X(:,end)-x_trim(2:7));
 opti.minimize(J);
 
 
@@ -130,13 +132,14 @@ opti.subject_to(X6(1)==x0_casadi(6));
 % opti.subject_to(X8(1)==x0_casadi(8));
 % opti.subject_to(X9(1)==x0_casadi(9));
 
-% terminal condition
-opti.subject_to(X1(end)==xterminal_casadi(1));
-opti.subject_to(X2(end)==xterminal_casadi(2));
-opti.subject_to(X3(end)==xterminal_casadi(3));
-opti.subject_to(X4(end)==xterminal_casadi(4));
-opti.subject_to(X5(end)==xterminal_casadi(5));
-opti.subject_to(X6(end)==xterminal_casadi(6));
+% % terminal condition
+% opti.subject_to(X1(end)==xterminal_casadi(1));
+% opti.subject_to(X2(end)==xterminal_casadi(2));
+% opti.subject_to(X3(end)==xterminal_casadi(3));
+% opti.subject_to(X4(end)==xterminal_casadi(4));
+% opti.subject_to(X5(end)==xterminal_casadi(5));
+% opti.subject_to(X6(end)==xterminal_casadi(6));
+opti.subject_to((X(:,end)-xterminal_casadi)'*TP.S6*(X(:,end)-xterminal_casadi) <=0.01);
 
 % input constraints for input u
 for i=1:1:3
@@ -150,7 +153,7 @@ end
 
 % Define solver & solver options
 solver_options = struct;
-    solver_options.ipopt.print_level = 0;
+    solver_options.ipopt.print_level = 5;
     solver_options.print_time = 0;
     solver_options.verbose = 0;
     solver_options.ipopt.max_iter = 1000;
@@ -218,7 +221,7 @@ title(tlx,'states over time');
     nexttile;
     hold on;
     grid on;
-    plot(linspace(0,T,N+1),rad2deg(solution.x(1,:)));
+    plot(linspace(0,T,N+1),rad2deg(solution.x(1,:)-x_trim(2)));
     xlabel('Time [s]');
     ylabel('\beta');
     hold off;
@@ -226,7 +229,7 @@ title(tlx,'states over time');
     nexttile;
     hold on;
     grid on;
-    plot(linspace(0,T,N+1),rad2deg(solution.x(2,:)));
+    plot(linspace(0,T,N+1),rad2deg(solution.x(2,:)-x_trim(3)));
     xlabel('Time [s]');
     ylabel('\alpha');
     hold off;
@@ -234,7 +237,7 @@ title(tlx,'states over time');
     nexttile;
     hold on;
     grid on;
-    plot(linspace(0,T,N+1),rad2deg(solution.x(3,:)));
+    plot(linspace(0,T,N+1),rad2deg(solution.x(3,:)-x_trim(4)));
     xlabel('Time [s]');
     ylabel('p');
     hold off;
@@ -242,7 +245,7 @@ title(tlx,'states over time');
     nexttile;
     hold on;
     grid on;
-    plot(linspace(0,T,N+1),rad2deg(solution.x(4,:)));
+    plot(linspace(0,T,N+1),rad2deg(solution.x(4,:)-x_trim(5)));
     xlabel('Time [s]');
     ylabel('q');
     hold off;
@@ -250,7 +253,7 @@ title(tlx,'states over time');
     nexttile;
     hold on;
     grid on;
-    plot(linspace(0,T,N+1),rad2deg(solution.x(5,:)));
+    plot(linspace(0,T,N+1),rad2deg(solution.x(5,:)-x_trim(6)));
     xlabel('Time [s]');
     ylabel('r');
     hold off;
@@ -258,7 +261,7 @@ title(tlx,'states over time');
     nexttile;
     hold on;
     grid on;
-    plot(linspace(0,T,N+1),rad2deg(solution.x(6,:)));
+    plot(linspace(0,T,N+1),rad2deg(solution.x(6,:)-x_trim(7)));
     xlabel('Time [s]');
     ylabel('\Phi');
     hold off;
@@ -271,7 +274,7 @@ title(tlu,'input over time');
     nexttile;
     hold on;
     grid on;
-    plot(linspace(0,T,N),rad2deg(solution.u(1,:)));
+    plot(linspace(0,T,N),rad2deg(solution.u(1,:)-u_trim(1)));
     xlabel('Time [s]');
     ylabel('u stabilators [deg/s]');
     hold off;
@@ -279,7 +282,7 @@ title(tlu,'input over time');
     nexttile;
     hold on;
     grid on;
-    plot(linspace(0,T,N),rad2deg(solution.u(2,:)));
+    plot(linspace(0,T,N),rad2deg(solution.u(2,:)-u_trim(2)));
     xlabel('Time [s]');
     ylabel('u rudders [deg/s]');
     hold off;
@@ -287,7 +290,7 @@ title(tlu,'input over time');
     nexttile;
     hold on;
     grid on;
-    plot(linspace(0,T,N),rad2deg(solution.u(3,:)));
+    plot(linspace(0,T,N),rad2deg(solution.u(3,:)-u_trim(3)));
     xlabel('Time [s]');
     ylabel('u ailerons [deg/s]');
     hold off;
