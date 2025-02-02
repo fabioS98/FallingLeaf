@@ -6,13 +6,15 @@ run config.m
 load TP9.mat;
 TP = TP9;
 
+
 % define parameter values
-x_start = TP.op.States.x;
-x_start(2) = deg2rad(15); %simply set alpha to 15 deg, check if MPC returns to TP
+x_start = x0; %TP.op.States.x;
+%x_start(2) = deg2rad(15); %simply set alpha to 15 deg, check if MPC returns to TP
 
 % define the trim points, which is the desird terminal point
 x_trim = TP.op.States.x;
 u_trim = TP.op.Inputs.u;
+
 
 %% Definition of the OCP Variables and OCP structure
 import casadi.*
@@ -21,7 +23,7 @@ opti = casadi.Opti();
 
 % fixed prediction horizon
 T = 5;
-dt = 0.01;
+dt = 0.005;
 N = T/dt;
 
 % decision variables for OCP
@@ -113,7 +115,7 @@ end
 
 % combine the stage costs and the terminal costs, x_trim' * S * xtrim,
 % which S from the ARE around the TP
-J = sum(Js,1) + (X(:,end)-x_trim(2:7))'*TP.S6*(X(:,end)-x_trim(2:7));
+J = sum(Js,1) + (X(:,end)-x_trim(2:7))'*TP.S6*(X(:,end)-x_trim(2:7)) + (U(1:3,end)-u_trim(1:3))' * R *(U(1:3,end)-u_trim(1:3));
 opti.minimize(J);
 
 
@@ -127,6 +129,10 @@ opti.subject_to(X4(1)==x0_casadi(4));
 opti.subject_to(X5(1)==x0_casadi(5));
 opti.subject_to(X6(1)==x0_casadi(6));
 
+for i=1:1:3
+    opti.subject_to(U(i,1) == u0_casadi(i,1));
+end
+
 %only relevant for 9-dim model
 % opti.subject_to(X7(1)==x0_casadi(7));
 % opti.subject_to(X8(1)==x0_casadi(8));
@@ -139,7 +145,9 @@ opti.subject_to(X6(1)==x0_casadi(6));
 % opti.subject_to(X4(end)==xterminal_casadi(4));
 % opti.subject_to(X5(end)==xterminal_casadi(5));
 % opti.subject_to(X6(end)==xterminal_casadi(6));
-opti.subject_to((X(:,end)-xterminal_casadi)'*TP.S6*(X(:,end)-xterminal_casadi) <=0.01);
+
+opti.subject_to((X(:,end)- xterminal_casadi)'*TP.S6*(X(:,end)-xterminal_casadi) <= 0.1);
+
 
 % input constraints for input u
 for i=1:1:3
@@ -223,7 +231,7 @@ title(tlx,'states over time');
     grid on;
     plot(linspace(0,T,N+1),rad2deg(solution.x(1,:)-x_trim(2)));
     xlabel('Time [s]');
-    ylabel('\beta');
+    ylabel('\Delta \beta');
     hold off;
 
     nexttile;
@@ -231,7 +239,7 @@ title(tlx,'states over time');
     grid on;
     plot(linspace(0,T,N+1),rad2deg(solution.x(2,:)-x_trim(3)));
     xlabel('Time [s]');
-    ylabel('\alpha');
+    ylabel('\Delta \alpha');
     hold off;
 
     nexttile;
@@ -239,7 +247,7 @@ title(tlx,'states over time');
     grid on;
     plot(linspace(0,T,N+1),rad2deg(solution.x(3,:)-x_trim(4)));
     xlabel('Time [s]');
-    ylabel('p');
+    ylabel('\Delta p');
     hold off;
 
     nexttile;

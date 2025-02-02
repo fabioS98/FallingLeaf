@@ -1,0 +1,165 @@
+function [opti, mpc_vars] = setup_mpc(TP, T, dt)
+    %% Definition of the OCP Variables and OCP structure
+    import casadi.*
+    opti = casadi.Opti();
+    
+    x_trim = TP.op.States.x;
+    u_trim = TP.op.Inputs.u;
+    
+    % fixed prediction horizon
+    N = T/dt;
+    
+    mpc_vars = struct;
+    % decision variables for OCP
+    mpc_vars.X = opti.variable(6,N+1);               % states of the position
+    X = mpc_vars.X;
+    X1 = mpc_vars.X(1,:);                            % state x1: beta
+    X2 = mpc_vars.X(2,:);                            % state x2: alpha
+    X3 = mpc_vars.X(3,:);                            % state x3: p
+    X4 = mpc_vars.X(4,:);                            % state x4: q
+    X5 = mpc_vars.X(5,:);                            % state x5: r
+    X6 = mpc_vars.X(6,:);                            % state x6: phi
+    
+    %only relevant for 9-dim
+    % X7 = X(7,:);                            % state x6: phi
+    % X8 = X(8,:);                            % state x6: phi
+    % X9 = X(9,:);                            % state x6: phi
+    
+    
+    mpc_vars.U = opti.variable(3,N);                 % control input
+    U = mpc_vars.U;
+
+    
+    mpc_vars.Js = opti.variable(N,1);                % stage costs
+    Js = mpc_vars.Js;
+    
+    % parameters for the OCP
+    mpc_vars.x0_casadi = opti.parameter(6,1);               % initial position and orientation of the aircraft
+    x0_casadi = mpc_vars.x0_casadi;
+    
+    mpc_vars.xterminal_casadi = opti.parameter(6,1);        % terminal position and orientation of the aircraft
+    xterminal_casadi = mpc_vars.xterminal_casadi;
+    
+    mpc_vars.u0_casadi = opti.parameter(3,1);               % initial inputs
+    u0_casadi = mpc_vars.u0_casadi;
+    
+    %% Defining the dynamics of the path planning problem and the dynamic constraints
+    
+    u = casadi.MX.sym('u', 3, 1);
+    x = casadi.MX.sym('x', 6, 1);
+    x_trim_sym = casadi.MX.sym('x_trim',9,1);
+    
+    f_sym = f_full(u,x, x_trim_sym);
+    f = casadi.Function('f',{u,x,x_trim_sym}, {f_sym});
+    mpc_vars.f = f;
+    % only relevant for linearization at each starting point
+    %Dfx = f_sym.jacobian(x);
+    %Dfu = f_sym.jacobian(u);
+    %Dfx = casadi.Function('Dfx', {x, u}, {Dfx});
+    %Dfu = casadi.Function('Dfu', {x, u}, {Dfu});
+    
+    
+    % Linear f definition
+    % A = TP.linsys.A;
+    % B = TP.linsys.B;
+    % C = TP.linsys.C;
+    % D = TP.linsys.D;
+    % lin_f = @(x,u,x0,u0) f(x0,u0) + Dfx(x0,u0)*(x-x0) + Dfu(x0,u0)*(u-u0);
+    
+    
+    % Define weighting matrices
+    % R - matrix %
+    %0.1 deg for all angle deviations
+    %0.05 deg/s for all rates
+    
+    Q = eye(6);
+    Q(1,1) = 1/(deg2rad(0.1))^2; 
+    Q(2,2) = 1/(deg2rad(0.1))^2;
+    Q(3,3) = 1/(deg2rad(0.05))^2;
+    Q(4,4) = 1/(deg2rad(0.05))^2;
+    Q(5,5) = 1/(deg2rad(0.05))^2;
+    Q(6,6) = 1/(deg2rad(0.1))^2;
+    Q = eye(6);
+    Q(3,3) = 5;
+    
+    % only relevant for 9dim
+    % R(7,7) = 1/(deg2rad(0.5))^2;
+    % R(8,8) = 1/(deg2rad(0.5))^2;
+    % R(9,9) = 1/(deg2rad(0.5))^2;
+    
+    R = eye(3);
+    for i=1:1:3
+        R(i,i) = 1/deg2rad(0.05)^2;
+    end
+    R = eye(3);
+    
+    % Euler-Cauchy Integration Scheme
+    for i = 1 : N
+        X_next = X(:,i) + dt*f(U(:,i),X(:,i), x_trim);
+        opti.subject_to(X(:,i+1) == X_next);
+    
+        Js(i,1) = (X(:,i)-xterminal_casadi)' * Q * (X(:,i)-xterminal_casadi) ...
+                   + (U(1:3,i)-u_trim(1:3))' * R *(U(1:3,i)-u_trim(1:3)); 
+    end
+    
+    % combine the stage costs and the terminal costs, x_trim' * S * xtrim,
+    % which S from the ARE around the TP
+    mpc_vars.J = sum(Js,1) + (X(:,end)-x_trim(2:7))'*Q*(X(:,end)-x_trim(2:7));
+    opti.minimize(mpc_vars.J);
+    
+    
+    %% Defining constraints for the OCP
+    
+    % initial condition x
+    opti.subject_to(X1(1)==x0_casadi(1));
+    opti.subject_to(X2(1)==x0_casadi(2));
+    opti.subject_to(X3(1)==x0_casadi(3));
+    opti.subject_to(X4(1)==x0_casadi(4));
+    opti.subject_to(X5(1)==x0_casadi(5));
+    opti.subject_to(X6(1)==x0_casadi(6));
+    
+    %only relevant for 9-dim model
+    % opti.subject_to(X7(1)==x0_casadi(7));
+    % opti.subject_to(X8(1)==x0_casadi(8));
+    % opti.subject_to(X9(1)==x0_casadi(9));
+    
+    % initial condition u
+    for i=1:1:3
+        opti.subject_to(mpc_vars.U(i,1) == u0_casadi(i,1));
+    end
+
+    opti.subject_to(abs(X1(:)) < deg2rad(50));
+    opti.subject_to(abs(X2(:)) < deg2rad(50));
+    % % terminal condition
+    % opti.subject_to(X1(end)==xterminal_casadi(1));
+    % opti.subject_to(X2(end)==xterminal_casadi(2));
+    % opti.subject_to(X3(end)==xterminal_casadi(3));
+    % opti.subject_to(X4(end)==xterminal_casadi(4));
+    % opti.subject_to(X5(end)==xterminal_casadi(5));
+    % opti.subject_to(X6(end)==xterminal_casadi(6));
+    opti.subject_to((X(:,end)-xterminal_casadi)'*TP.S6*(X(:,end)-xterminal_casadi) <=0.1);
+    
+    % input constraints for input u
+    u_lim_min = [-deg2rad(24); -deg2rad(25); -deg2rad(30); 14500];
+    u_lim_max = [deg2rad(10.5); deg2rad(45); deg2rad(30); 14500];
+    for i=1:1:3
+        opti.subject_to(U(i,:) <= u_lim_max(i));
+        opti.subject_to(U(i,:) >= u_lim_min(i));
+    end
+    
+    
+    
+    %% Setup of the solver
+    
+    % Define solver & solver options
+    solver_options = struct;
+    solver_options.ipopt.print_level = 1;
+    solver_options.print_time = 0;
+    solver_options.verbose = 0;
+    solver_options.ipopt.max_iter = 1000;
+    
+    opti.solver('ipopt', solver_options);
+
+
+
+end

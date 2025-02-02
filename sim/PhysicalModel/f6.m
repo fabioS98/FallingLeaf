@@ -1,4 +1,4 @@
-function xdot = f(u, Forces, Moments, x)
+function xdot = f6(u, Forces, Moments, x)
 
 % u = [ustab; urud; uail; uthr]
 % x = [Velocity; sideslip_angle; angle_of_attack; rool_rate; pitch_rate; 
