@@ -57,6 +57,16 @@ function [opti, mpc_vars] = setup_mpc(TP, T, dt)
  
     
     Q = eye(9); 
+    Q(1,1) = 1/350^2;
+    Q(2,2) = 1/deg2rad(0.1)^2;
+    Q(3,3) = Q(2,2);
+    Q(4,4) = 1/deg2rad(0.1)^2;
+    Q(5,5) = Q(4,4);
+    Q(6,6) = Q(5,5);
+    Q(7,7) = 1/deg2rad(1)^2;
+    Q(8,8) = 1/deg2rad(10)^2;
+    Q(9,9) = 1/deg2rad(10)^2;
+
     R = eye(3);
     
     % Euler-Cauchy Integration Scheme
@@ -70,7 +80,7 @@ function [opti, mpc_vars] = setup_mpc(TP, T, dt)
     
     % combine the stage costs and the terminal costs, x_trim' * S * xtrim,
     % which S from the ARE around the TP
-    mpc_vars.J = sum(Js,1) + (X(:,end)-xterminal_casadi)'*Q*(X(:,end)-xterminal_casadi);
+    mpc_vars.J = sum(Js,1) + (X(:,end)-xterminal_casadi)'*TP.S*(X(:,end)-xterminal_casadi) + (U(:,end)-u_trim(1:3))'*R*(U(:,end)-u_trim(1:3));
     opti.minimize(mpc_vars.J);
     
     
@@ -92,15 +102,7 @@ function [opti, mpc_vars] = setup_mpc(TP, T, dt)
         opti.subject_to(mpc_vars.U(i,1) == u0_casadi(i,1));
     end
 
-
-    % % terminal condition
-    % opti.subject_to(X1(end)==xterminal_casadi(1));
-    % opti.subject_to(X2(end)==xterminal_casadi(2));
-    % opti.subject_to(X3(end)==xterminal_casadi(3));
-    % opti.subject_to(X4(end)==xterminal_casadi(4));
-    % opti.subject_to(X5(end)==xterminal_casadi(5));
-    % opti.subject_to(X6(end)==xterminal_casadi(6));
-    opti.subject_to((X(:,end)-xterminal_casadi)'*Q*(X(:,end)-xterminal_casadi) <=0.01);
+    opti.subject_to((X(:,end)-xterminal_casadi)'*Q*(X(:,end)-xterminal_casadi) <= 50);
     
     % input constraints for input u
     u_lim_min = [-deg2rad(24); -deg2rad(25); -deg2rad(30); 14500];
@@ -116,7 +118,7 @@ function [opti, mpc_vars] = setup_mpc(TP, T, dt)
     
     % Define solver & solver options
     solver_options = struct;
-    solver_options.ipopt.print_level = 1;
+    solver_options.ipopt.print_level = 5;
     solver_options.print_time = 0;
     solver_options.verbose = 0;
     solver_options.ipopt.max_iter = 1000;

@@ -8,8 +8,8 @@ TP = TP9;
 
 
 % define parameter values
-x_start = TP.op.States.x;
-x_start(2) = x_start(2) + deg2rad(5);
+x_start = x0; %TP.op.States.x;
+%x_start(3) = x_start(3) + deg2rad(5);
 u_start = TP.op.Inputs.u;
 %x_start(2) = deg2rad(15); %simply set alpha to 15 deg, check if MPC returns to TP
 
@@ -19,7 +19,7 @@ u_trim = TP.op.Inputs.u;
 
 % MPC parameters
 T = 5; %5s prediction into future
-dt = 0.01; % time discretization of 0.1 s
+dt = 0.1; % time discretization of 0.1 s
 N = T/dt;
 
 %% Setup up the mpc solver
@@ -91,7 +91,7 @@ title(tlx,'states over time');
     grid on;
     plot(linspace(0,T,N+1),rad2deg(solution.x(7,:)-x_trim(7)));
     xlabel('Time [s]');
-    ylabel('\Delta \Phi');
+    ylabel('\Delta \phi');
     hold off;
 
 
