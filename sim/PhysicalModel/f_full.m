@@ -1,12 +1,12 @@
-function xdot = f_full(u, x, xtrim)
+function xdot = f_full(u, x)
 
 % u = [ustab; urud; uail; uthr]
 % x = [Velocity; sideslip_angle; angle_of_attack; rool_rate; pitch_rate; 
 % yaw_rate; bank_angle; pitch_angle; yaw_angle]
 
 
-q = compute_dyn_pressure([xtrim(1); x; xtrim(7:9)]);
-[Forces, Moments] = compute_forces_moments(compute_coef([u; 14500], [xtrim(1); x; xtrim(7:9)]), q);
+q = compute_dyn_pressure(x);
+[Forces, Moments] = compute_forces_moments(compute_coef([u; 14500], x), q);
 
 D = Forces(1);
 L = Forces(2);
@@ -32,32 +32,41 @@ Iaux = [Izz/k 0 Ixz/k;
 
 
 
+
+
 xdot = casadi.MX.zeros(9,1);
 
+V = x(1); %use trim value
+beta = x(2);
+alpha = x(3);
+p = x(4);
+q = x(5);
+r = x(6);
+phi = x(7);
+theta = x(8); %use trim value
+psi = x(9);
 
 % Forces equations
-xdot(1) = 0; %(-1/m)*(D*cos(x(2)) - Y*sin(x(2))) + g*(cos(xtrim(7))*cos(xtrim(8))*sin(x(3))*cos(x(2)) + ...
-   % sin(xtrim(7))*cos(xtrim(8))*sin(x(2))-sin(xtrim(8))*cos(x(3))*cos(x(2))) + (T/m)*cos(x(3))*cos(x(2));
+xdot(1) = 0;
 
-xdot(2) = (Y*cos(x(2))+D*sin(x(2)))/(m*x(1))+x(4)*sin(x(3))-x(6)*cos(x(3))+...
-          (g/x(1))*cos(x(2))*sin(xtrim(7))*cos(xtrim(8))+sin(x(2))*(g*cos(x(3))*sin(xtrim(8))-...
-           g*sin(x(3))*cos(xtrim(7))*cos(xtrim(8))+T/m*cos(x(3)))/x(1);
+xdot(2) = (Y*cos(beta)+D*sin(beta))/(m*V)+p*sin(alpha)-r*cos(alpha)+...
+          (g/V)*cos(beta)*sin(phi)*cos(theta)+sin(beta)*(g*cos(alpha)*sin(theta)-...
+           g*sin(alpha)*cos(phi)*cos(theta)+T/m*cos(alpha))/V;
 
-xdot(3) = -L/(m*x(1)*cos(x(2)))+x(5)-tan(x(2))*(x(4)*cos(x(3)) +x(6)*sin(x(3))) + ...
-          (g/(x(1)*cos(x(2))))*(cos(xtrim(7))*cos(xtrim(8))*cos(x(3)) + sin(x(3))*sin(xtrim(8))) - ...
-          T*sin(x(3))/(m*x(1)*cos(x(2)));
+xdot(3) = -L/(m*V*cos(beta))+q-tan(beta)*(p*cos(alpha) +r*sin(alpha)) + ...
+          (g/(V*cos(beta)))*(cos(phi)*cos(theta)*cos(alpha) + sin(alpha)*sin(theta)) - ...
+          T*sin(alpha)/(m*V*cos(beta));
 
 % Moment equations
-xdot(4:6) = Iaux*([l;M;n]-[0 -x(6) x(5); x(6) 0 -x(4); -x(5) x(4) 0]*I*[x(4);x(5);x(6)]);
+xdot(4:6) = Iaux*([l;M;n]-[0 -r q; r 0 -p; -q p 0]*I*[p;q;r]);
 
 
 % Euler angles dynamics
-xdot(7) = [1; sin(xtrim(7))*tan(xtrim(8)); cos(xtrim(7))*tan(xtrim(8))]'*x(4:6);
+xdot(7) = [1; sin(phi)*tan(theta); cos(phi)*tan(theta)]'*x(4:6);
 
-xdot(8) = 0;%[0; cos(xtrim(7)); -sin(xtrim(7))]'*x(4:6);
+xdot(8) = [0; cos(phi); -sin(phi)]'*x(4:6);
 
-xdot(9) = 0; %[0; sin(xtrim(7))*sec(xtrim(8)); cos(xtrim(7))*sec(xtrim(8))]'*x(4:6);
+xdot(9) = [0; sin(phi)*sec(theta); cos(phi)*sec(theta)]'*x(4:6);
 
-xdot = xdot(2:7);
 
 end

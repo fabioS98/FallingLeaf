@@ -1,4 +1,4 @@
-function solution = solve_mpc(x_start, TP, opti, mpc_vars, ax4)
+function solution = solve_mpc(x_start, u_start, TP, opti, mpc_vars, ax4)
 
     x_trim = TP.op.States.x;
     u_trim = TP.op.Inputs.u;
@@ -6,15 +6,27 @@ function solution = solve_mpc(x_start, TP, opti, mpc_vars, ax4)
     
     
     % allocate parameter values
-    opti.set_value(mpc_vars.x0_casadi,x_start(2:7));
-    opti.set_value(mpc_vars.xterminal_casadi, x_trim(2:7));
+    opti.set_value(mpc_vars.x0_casadi, x_start);
+    opti.set_value(mpc_vars.xterminal_casadi, x_trim);
     
-    opti.set_value(mpc_vars.u0_casadi,mpc_vars.u_traj_last(1:3,1));
+    opti.set_value(mpc_vars.u0_casadi, u_start);
     
     
     % define initial solution guess
-    opti.set_initial(mpc_vars.U, TP.op.Inputs.u(1:3) .* ones(size(mpc_vars.U)));
-    opti.set_initial(mpc_vars.X, mpc_vars.x_traj_last);
+    N_x = size(mpc_vars.X,2);
+    N_u = size(mpc_vars.U,2);
+    x_init = zeros(9,N_x); 
+    u_init = zeros(3,N_u);
+    for i=1:1:9
+        x_init(i,:) = linspace(x_start(i),x_trim(i),N_x);
+        
+    end
+    for i=1:1:3
+        u_init(i,:) = linspace(u_start(i),u_trim(i),N_u);
+        
+    end
+    opti.set_initial(mpc_vars.U, u_init);
+    opti.set_initial(mpc_vars.X, x_init);
     
     
     %% Run Optimization
@@ -42,26 +54,17 @@ function solution = solve_mpc(x_start, TP, opti, mpc_vars, ax4)
 
     
     
-    % tlx = tiledlayout(3,1);
-    % title(tlx,'states over time');
-
-    cla(ax4);
-    T = 5; N = T/0.005;
-    plot(ax4, linspace(0,T,N+1),rad2deg(solution.x(1,:)-x_trim(2)),'DisplayName','\beta');
-
-
-    plot(ax4, linspace(0,T,N+1),rad2deg(solution.x(2,:)-x_trim(3)),'DisplayName','\alpha');
-    plot(ax4, linspace(0,T,N+1),rad2deg(solution.x(3,:)-x_trim(4)),'DisplayName','p');
-    xlabel('Time [s]');
-    ylabel('Predicted States');
-
-    % nexttile;
-    % hold on;
-    % grid on;
-    % plot(linspace(0,T,N+1),rad2deg(solution.x(3,:)-x_trim(4)));
-    % xlabel('Time [s]');
-    % ylabel('p');
-    % hold off;
-    drawnow;
-    pause(0.05);
+    % Plot, if axis is input argument
+    if nargin > 5
+        cla(ax4);
+        T = mpc_vars.T ; N_x = size(mpc_vars.X,2);
+        plot(ax4, linspace(0,T,N_x),rad2deg(solution.x(2,:)-x_trim(2)),'DisplayName','\beta');
+        plot(ax4, linspace(0,T,N_x),rad2deg(solution.x(3,:)-x_trim(3)),'DisplayName','\alpha');
+        plot(ax4, linspace(0,T,N_x),rad2deg(solution.x(4,:)-x_trim(4)),'DisplayName','p');
+        xlabel(ax4,"Prediction [s]");
+        ylabel(ax4,"\beta [deg], \alpha [deg], p [deg/s]");
+        legend(ax4);
+        drawnow;
+        pause(0.05);
+    end
 end
