@@ -27,7 +27,7 @@ max_delta_from_tp = [5; %V --> should not change due to dynamics
 
 
 
-num_samples = 100;
+num_samples = 1000;
 Dis_sim_name = "Dis_sim_" + char(datetime('now', 'Format', 'yyyy-MM-dd__HH-mm-ss'));
 
 Dis_sim = {};
@@ -39,7 +39,7 @@ Dis_sim.data = {};
 %% Create Lyapunov function and its derivative
 x = casadi.MX.sym('x',9,1);
 V = casadi.Function('V',{x},{(x-xtrim)' * TP.S * (x-xtrim)});
-Nabla_V = casadi.Function('Nabla_V',{x},{TP.S * (x-xtrim)});
+Nabla_V = casadi.Function('Nabla_V',{x},{2*TP.S * (x-xtrim)});
 
 %% Create system dynamics function with LQR solution
 % create function with u from LQR solution: du = K * dx
@@ -48,12 +48,12 @@ f_CL = casadi.Function('f_CL',{x}, {f_sym});
 
 %% Define a hypercube for sampling
 x = mapStatesToVariables(TP.op.States.x);
-delta_a_b = deg2rad(30);
+delta_a_b = deg2rad(20);
 ranges = zeros(6,2);
 ranges(1,:) = [x.beta - delta_a_b; x.beta + delta_a_b];
 ranges(2,:) = [x.alpha - delta_a_b; x.alpha + delta_a_b];
 
-delta_p_q_r = deg2rad(30);
+delta_p_q_r = deg2rad(20);
 ranges(3,:) = [x.p - delta_p_q_r; x.p + delta_p_q_r];
 ranges(4,:) = [x.q - delta_p_q_r; x.q + delta_p_q_r];
 ranges(5,:) = [x.r - delta_p_q_r; x.r + delta_p_q_r];
@@ -92,7 +92,7 @@ for j = 1:1:size(x0_lhs,2) % Use each sample IC
 end
 
 %% Bisection to define alpha
-alpha = 0.9;
+alpha = 0.7;
 
 Samples_within = 0;
 Samples_within_non_dis = 0;

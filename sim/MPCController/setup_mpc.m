@@ -56,18 +56,19 @@ function [opti, mpc_vars] = setup_mpc(TP, T, dt)
     mpc_vars.f = f;
  
     
+    % Apply Bryson's rule for defining the weighting matrix
     Q = eye(9); 
-    Q(1,1) = 1/350^2;
+    Q(1,1) = 1/5^2;
     Q(2,2) = 1/deg2rad(0.1)^2;
     Q(3,3) = Q(2,2);
-    Q(4,4) = 1/deg2rad(0.1)^2;
+    Q(4,4) = 1/deg2rad(0.2)^2;
     Q(5,5) = Q(4,4);
     Q(6,6) = Q(5,5);
-    Q(7,7) = 1/deg2rad(1)^2;
-    Q(8,8) = 1/deg2rad(10)^2;
-    Q(9,9) = 1/deg2rad(10)^2;
+    Q(7,7) = 1/deg2rad(0.1)^2;
+    Q(8,8) = Q(7,7);
+    Q(9,9) = Q(8,8);
 
-    R = eye(3);
+    R = eye(3) ./ 10;
     
     % Euler-Cauchy Integration Scheme
     for i = 1 : N
@@ -75,12 +76,11 @@ function [opti, mpc_vars] = setup_mpc(TP, T, dt)
         opti.subject_to(X(:,i+1) == X_next);
     
         Js(i,1) = (X(:,i)-xterminal_casadi)' * Q * (X(:,i)-xterminal_casadi) ...
-                   + (U(1:3,i)-u_trim(1:3))' * R *(U(1:3,i)-u_trim(1:3)); 
+                   + (U(1:3,i)-u_trim(1:3))' * R * (U(1:3,i)-u_trim(1:3)); 
     end
     
-    % combine the stage costs and the terminal costs, x_trim' * S * xtrim,
-    % which S from the ARE around the TP
-    mpc_vars.J = sum(Js,1) + (X(:,end)-xterminal_casadi)'*TP.S*(X(:,end)-xterminal_casadi) + (U(:,end)-u_trim(1:3))'*R*(U(:,end)-u_trim(1:3));
+    % combine the stage costs and the terminal costs
+    mpc_vars.J = sum(Js,1) + (X(:,end)-xterminal_casadi)'*Q*(X(:,end)-xterminal_casadi) + (U(:,end)-u_trim(1:3))'*R*(U(:,end)-u_trim(1:3));
     opti.minimize(mpc_vars.J);
     
     
@@ -102,8 +102,8 @@ function [opti, mpc_vars] = setup_mpc(TP, T, dt)
         opti.subject_to(mpc_vars.U(i,1) == u0_casadi(i,1));
     end
 
-    opti.subject_to((X(:,end)-xterminal_casadi)'*Q*(X(:,end)-xterminal_casadi) <= 50);
-    
+    opti.subject_to((X(:,end)-xterminal_casadi)'*TP.S*(X(:,end)-xterminal_casadi) <= 0.5);
+
     % input constraints for input u
     u_lim_min = [-deg2rad(24); -deg2rad(25); -deg2rad(30); 14500];
     u_lim_max = [deg2rad(10.5); deg2rad(45); deg2rad(30); 14500];

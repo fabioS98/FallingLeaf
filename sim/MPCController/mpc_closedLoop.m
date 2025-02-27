@@ -6,7 +6,16 @@ run config.m
 load TP9.mat; TP = TP9;
 
 % Initial conditions
-x_start = x0; %TP.op.States.x;
+x_start = x0; 
+% x_start = [350; %diverged sample
+%            deg2rad(38.91); 
+%            deg2rad(20.11);
+%            deg2rad(-1.92);
+%            deg2rad(-3.64);
+%            deg2rad(-19.81);
+%            deg2rad(-6.44);
+%            deg2rad(16.61);
+%            0]
 %x_start(2) = x_start(2) + deg2rad(5);
 u_start = TP.op.Inputs.u;
 
@@ -14,12 +23,12 @@ x_trim = TP.op.States.x;
 u_trim = TP.op.Inputs.u;
 
 % MPC parameters
-T = 5; %5s prediction into future
+T = 15; %5s prediction into future
 dt = 0.1; % time discretization of 0.1 s
 mpc_freq = 5;
 
 % Simulation parameters
-sim_time = 10;
+sim_time = 20;
 sim_dt = dt;
 
 
@@ -59,10 +68,18 @@ ylabel(ax3, "\phi, \theta, \psi [deg/s]");
 ylabel(ax4, "u [deg]");
 xlabel(ax4, "Time [s]")
 
+%% Terminal Region
+x = casadi.MX.sym('x',9,1);
+V = casadi.Function('V',{x},{(x-x_trim)' * TP.S * (x-x_trim)});
+alpha = 0.7;
+K = TP.K6;
 %% Integration Loop
 for i=1:1:sim_N
     disp(i);
     % Performs the mpc input computation evry mpc_freq steps
+    disp("V(x)");
+    disp(full(V(x_cur)));
+    
     if mod(i-1, mpc_freq) == 0 
         sol = solve_mpc(x_cur, u_cur, TP, opti, mpc_vars, ax5);
         u_buffer = sol.u(:,2:(mpc_freq+1));
@@ -70,7 +87,7 @@ for i=1:1:sim_N
         mpc_vars.x_traj_last = sol.x;
         idx_u = 1; 
     end
-  
+    
     % Get current state and input
     u_cur = u_buffer(:,idx_u);
     x_cur = x_traj(:,i);
@@ -84,7 +101,17 @@ for i=1:1:sim_N
     
 end
 
-
+figure;
+hold on;
+grid on;
+plot(rad2deg(x_traj(2,:)), rad2deg(x_traj(3,:)),'DisplayName','flight trajectory','LineWidth',2);
+title('Path Optimal Flight Trajectory');
+xlabel('\beta');
+ylabel('\alpha');
+legend('Location','southeast');
+axis equal;
+hold off;
+matlab2tikz()
 
 
 %

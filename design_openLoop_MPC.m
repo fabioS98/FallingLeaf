@@ -18,7 +18,7 @@ x_trim = TP.op.States.x;
 u_trim = TP.op.Inputs.u;
 
 % MPC parameters
-T = 5; %5s prediction into future
+T = 15; %5s prediction into future
 dt = 0.1; % time discretization of 0.1 s
 N = T/dt;
 
@@ -43,7 +43,7 @@ hold off;
 
 %%
 figure;
-tlx = tiledlayout(6,1);
+tlx = tiledlayout(8,1);
 title(tlx,'states over time');
 
     nexttile;
@@ -94,6 +94,22 @@ title(tlx,'states over time');
     ylabel('\Delta \phi');
     hold off;
 
+    nexttile;
+    hold on;
+    grid on;
+    plot(linspace(0,T,N+1),rad2deg(solution.x(8,:)-x_trim(8)));
+    xlabel('Time [s]');
+    ylabel('\Delta \phi');
+    hold off;
+
+    nexttile;
+    hold on;
+    grid on;
+    plot(linspace(0,T,N+1),rad2deg(solution.x(9,:)-x_trim(9)));
+    xlabel('Time [s]');
+    ylabel('\Delta \phi');
+    hold off;
+
 
 figure;
 tlu = tiledlayout(4,1);
@@ -122,6 +138,8 @@ title(tlu,'input over time');
     xlabel('Time [s]');
     ylabel('\Delta u_{ailerons} [deg/s]');
     hold off;
+
+    
 
 
 
