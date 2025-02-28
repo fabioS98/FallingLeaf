@@ -78,6 +78,14 @@ for i = 1:1:num_samples
     end
 end
 
+%% Print single trajectory
+close all
+i = 8204; %i = 9991 | near diverge,
+cur = MC_sim.data{i};
+%cur = diverged_samples.data{4};
+print_states_over_x(xstates, cur.x0);
+plot_sim_output(cur.out)
+plot_sim_output_u(cur.out.logsout{1});
 
 %% Recheck returning to trim point
 close all
